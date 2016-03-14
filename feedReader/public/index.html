@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Assignment 2</title>
+    <script src='script.js'> </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.0-beta.1/jquery-ui.min.js"></script>
+    <script src ="offline.js"></script>
+    <script src = "jReject/js/jquery.reject.js"></script>
+    <script src = "moment.min.js"></script>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css" >
+    <link rel="stylesheet" href="offline-theme-slide.css">
+    <link rel="stylesheet" href="offline-theme-slide-indicator.css">
+    <link rel="stylesheet" href="offline-language-english.css">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,100' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Questrial' rel='stylesheet' type='text/css'>
+    <link href="jReject/css/jquery.reject.css" rel = "stylesheet">
+  <script>
+    
+var theUser = "test";
+var allSubs = null;
+var currentIndex = null;
+var postObjList = null;
+      
+var startUp = function()
+{
+  loadMySubs();
+    $.reject({
+        header: 'Your browser is not supported.',
+         paragraph1: 'You are currently using an unsupported browser', // Paragraph 1  
+        paragraph2: 'Please install one of the many optional browsers below to proceed',  
+      
+        close: false,
+				reject: {
+					safari: false, // Apple Safari
+					chrome: false, // Google Chrome
+					firefox: false, // Mozilla Firefox
+					msie: true, // Microsoft Internet Explorer
+					opera: true, // Opera
+					konqueror: true, // Konqueror (Linux)
+					unknown: true // Everything else
+				}
+			}); // Customized Browsers
+}
+
+
+var showFeedPrompt = function(){
+    $('.modal').addClass('show');//renders the modal box
+}
+
+var deleteFeed = function(){
+    
+    var id = allSubs[currentIndex].id;
+    var url = "./deleteSub?user=" + theUser;
+    url+="&id="+id;
+    loadURL(url, function(data){
+    loadMySubs();
+        
+        document.getElementById("post-content").innerHTML = "";
+        document.getElementById("titleType").innerHTML = "Posts";
+  });   
+}
+
+var getPosts = function()
+ {
+     var url ="./getAllPosts"
+    var link = allSubs[currentIndex].link;
+    url += "&link=" + link;
+     
+     
+    loadURL(url, function(data){
+    });
+ }
+
+
+var aPostSelected = function(index){
+    var list = document.getElementById("myPostWrapper").getElementsByClassName("listItem");
+    
+    
+    for(var i = 0; i < list.length; i++){
+    if(i == index)
+      {
+            list[i].style.backgroundColor="#fdd8d9";
+            list[i].style.paddingLeft="25px";
+        }
+        
+        else
+         {  
+                list[i].style.backgroundColor="";
+             list[i].style.paddingLeft="20px";
+         }
+  } 
+    
+  var postObj = postObjList[index]
+  var markUp = "";
+    var markupTitle = postObj.title.label;
+    
+    
+ //document.getElementById("infoType").innerHTML = markupTitle;
+    markUp += "<h1 id = 'productTitle'>" + postObj["im:name"].label +"<span id='companyName'>"+postObj["im:artist"].label + "</span></h1>";
+    
+  //markUp += "<h2>" + postObj["im:artist"].label + "</h2>";
+    
+  var dateString = postObj["im:releaseDate"].label;
+  
+  var price = postObj["im:price"].label;
+    
+  if(price.toLowerCase() === "get") price = "$0.00";
+    
+        markUp += "<img id='prodImg' src='" + postObj["im:image"][0].label + "'>";
+    markUp+= "<p>Released " + moment(dateString).fromNow() + ".</p>";
+    
+  markUp += "<p id='price'>" + price  + "</p><br>";
+    
+    markUp+= "<a class='btn btn-info' target = '_blank' id='outLink' href='" + postObj.link.attributes.href +"'>More Info</a>";
+
+    
+  document.getElementById("info-content").innerHTML = markUp;
+    
+    
+    
+    
+}
+
+var aSubSelected = function(index)
+{
+    currentIndex = index;
+    
+    getPosts();
+    
+    var list = document.getElementById("feed-content").getElementsByClassName("listItem");
+    
+    for(var i = 0; i<list.length; i++)
+    {
+        if (i==index)
+        {
+            list[i].style.backgroundColor="#fdd8d9";
+        
+            list[i].style.paddingLeft="25px";
+        }
+        
+        else
+         {  
+                list[i].style.backgroundColor="";
+             list[i].style.paddingLeft="20px";
+         }
+    }
+    
+    
+    var link = allSubs[index].link;//get the link from the correct index
+    var url="./getAllPosts?link=" + link;//add link to the url
+    
+    loadURL(url, function(data){
+            
+            
+            var title = JSON.parse(data).feed.title.label;//get title info.
+           postObjList = JSON.parse(data).feed.entry;
+    
+    var markUp=" ";
+        var titleMark = "<h1>" + title + "</h1>";   
+        
+        //document.getElementById('titleType').innerHTML = titleMark;
+    
+        for (var i = 0; i < postObjList.length; i++)
+        {
+            var aPost = postObjList[i];
+            markUp += "<div onclick= 'javascript:aPostSelected(" + i + ")' class='listItem feedButt'><a href='javascript:aPostSelected(" + i + ")' class='listLink'>" + aPost.title.label +" </a></div>";
+            
+            
+            
+        }
+    document.getElementById("post-content").innerHTML = markUp;
+            
+            });
+}
+
+var addFeed = function(_link)
+{
+  var link = _link;
+  if(link == null) return;
+  var url = "./addOrEditSub?user=" + theUser;
+  url += "&link=" + encodeURIComponent(link);
+  url += "&date=" + new Date().getTime();
+  url += "&id=" + theUser + new Date().getTime();
+  loadURL(url, function(data){
+    loadMySubs();
+  });
+}
+
+var loadMySubs = function()
+{
+  var url = "./listSubs?user=" + theUser;
+  console.log(url);
+  loadURL(url, function(data){
+    var mySubs = JSON.parse(data);
+    allSubs = mySubs;
+    if(mySubs.length == 0){
+      document.getElementById("feed-content").innerHTML = "No subsciptions" 
+    }
+    else{
+      var markUp = "";
+      for (var i = 0; i < mySubs.length; i++){
+        var aFeed = mySubs[i];
+        markUp += "<div onclick ='javascript:aSubSelected(" + i + ")'class='listItem feedButt'><a href='javascript:aSubSelected(" + i + ")' class='listLink'>" + aFeed.id + " : " + aFeed.link +" </a></div>";
+      }
+      document.getElementById("feed-content").innerHTML = markUp;
+    }
+  });
+}
+  </script>
+     
+      
+    
+    
+</head>
+
+<body onload='startUp()'> 
+    
+    
+    <div id="titleBG" class="page-header">
+    </div>
+    
+    <div id="main" class="container-fluid">   
+        <div class="row-fluid">
+            <div class = "col-lg-2 panel panel-default"id='myFeedWrapper'>
+                <div id="TitleWrap" class ="panel-heading ">
+                    <h1 class="pull-left colTitle">Feeds</h1>
+                    <button id="addButton"  onclick="javascript:showFeedPrompt()" class="btn btn-default pull-right">+</button>
+                  <button id="delButton"  onclick="javascript:deleteFeed()" class="btn btn-default pull-right">-</button>
+                    
+                  <div class="clearfix"></div>
+                </div>
+                <div id="feed-content" class="panel-content">
+                    
+                </div>
+            </div>
+    
+            <div class = "col-lg-5 panel panel-default"id='myPostWrapper'>
+                <div id="TitleWrap" class ="panel-heading">
+                    <h1 id="titleType" class="pull-left colTitle">Posts</h1>
+                  
+                  <div class="clearfix"></div>
+                </div>
+                <div id="post-content" style="overflow-y:scroll; overflow-x:hidden; height:80vh"class="panel-content">
+                  
+                </div>
+            </div>
+            <div class = "col-lg-5 panel panel-default"id='myFeedWrapper'>
+                <div id="TitleWrap" class ="panel-heading">
+                    <h1 id="infoType" class="pull-left colTitle"> Info </h1>
+                  
+                  <div class="clearfix"></div>
+                </div>
+                <div class="panel-content" id="info-content">
+                </div>
+            </div>
+    </div>
+    </div>
+    
+    
+    <div id="footer">
+    
+    
+        <div id="userDisplay">
+           
+          
+              <span id="indicator">&bull;
+</span>  <h2 id="userText">User</h2></div>
+        
+    
+    </div>    
+    
+    
+    <div class="modal effect">
+       
+            <a href="#"><img id="x" style="float:right;"src="img/x.png"></a>
+        <div class="modal-content">
+            
+            
+            
+        <h1 style="font-size:80px;color:#777272">Add Feed...</h1>
+        
+            <div>
+                <p style="font-size:30px; ">Enter the <strong>RSS url</strong> you would like to add.</p>
+            </div>
+            
+            <div class="form-group">
+ 
+
+  <input class="form-control" id="feedName" placeholder="URL">
+ 
+
+                      
+</div>
+        
+        <a type="submit" id="submitButt" class="btn btn-default btn-lg pull-center">Submit</a>
+           
+        
+        <br>
+            <br><br>
+            <p>This modal window uses modified code from <a href="http://codepen.io/vajkri/pen/OPYqav" >http://codepen.io/vajkri/pen/OPYqav</a></p>
+        
+        </div>
+
+    </div>
+    <div class="overlay"></div>
+    
+  <script>      
+
+      $("#submitButt").click(function () {
+          
+          if(document.getElementById('feedName').value==''){
+
+              document.getElementById("feedName").style.backgroundColor = "rgba(224, 41, 41, 0.58)";
+                $( "#feedName" ).effect( "bounce" );
+          
+
+             
+              
+              
+              return false;
+          }
+          else{
+              addFeed(document.getElementById('feedName').value);
+           $('.modal').removeClass('show');
+              document.getElementById("feedName").style.backgroundColor = "#2f2f2f";
+          
+          document.getElementById('feedName').value='';
+   return false;
+          }
+});
+//       
+      $("#x").click(function () {
+          
+           $('.modal').removeClass('show');
+          document.getElementById('feedName').value='';
+          document.getElementById("feedName").style.backgroundColor = "#2f2f2f";
+
+   return false;
+});
+
+    
+    </script>
+  
+      
+</body>
+</html>
