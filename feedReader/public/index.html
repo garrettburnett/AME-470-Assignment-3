@@ -12,6 +12,7 @@
     <script src ="offline.js"></script>
     <script src = "jReject/js/jquery.reject.js"></script>
     <script src = "moment.min.js"></script>
+    <script src = "Ply.js"></script>
     
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css" >
@@ -21,6 +22,9 @@
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,100' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Questrial' rel='stylesheet' type='text/css'>
     <link href="jReject/css/jquery.reject.css" rel = "stylesheet">
+    <link href="ply.css" rel = "stylesheet">
+    <link rel="icon" type="image/ico" href="img/fav.png">
+    
   <script>
     
 var theUser = "test";
@@ -28,9 +32,50 @@ var allSubs = null;
 var currentIndex = null;
 var postObjList = null;
       
+      
+      
+var showLoginModal = function(){
+    Ply.factory('login', function (options, data, resolve) {
+    options.flags = {
+      closeBtn: false,
+      closeByEsc: true,
+      closeByOverlay: true,
+      visibleOverlayInStack: true
+    };
+    options.onaction = function (ui) {
+      var data = ui.data;
+      console.log(ui.data);
+      
+    };
+    // Use base factory
+    Ply.factory.use('base', options, {
+      title: 'Login',
+      form: {
+        email: 'E-mail',
+        password: { hint: 'Password', type: 'password' }
+      },
+      ok: 'Enter',
+      cancel: false
+    }, resolve);
+  });
+  Ply.dialog('login').done(function (ui) {
+    Ply.dialog('alert', 'Bingo!');
+  });
+}
+
+      
+      
+      
+      
+      
+      
 var startUp = function()
 {
-  loadMySubs();
+    
+     showLoginModal();
+    
+    
+ // loadMySubs();
     $.reject({
         header: 'Your browser is not supported.',
          paragraph1: 'You are currently using an unsupported browser', // Paragraph 1  
